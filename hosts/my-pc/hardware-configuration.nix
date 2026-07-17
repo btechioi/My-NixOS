@@ -32,8 +32,8 @@
   services.xserver.videoDrivers = ["modesetting"];
 
   # USB WiFi — Realtek RTL8188FTV (2.4GHz, needs rtl8xxxu kernel module)
-  hardware.wirelessRegulatoryConfig.countryCode = "IN";
-  # RTL8188FTV uses the in-kernel rtl8xxxu driver — no extra config needed
+  # USB WiFi — Realtek RTL8188FTV (2.4GHz, uses in-kernel rtl8xxxu driver)
+  # No extra config needed — rtl8xxxu is built into the kernel
 
   # USB Bluetooth — Cambridge Silicon Radio dongle
   hardware.bluetooth.enable = true;
