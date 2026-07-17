@@ -24,7 +24,6 @@
     home-manager,
     ...
   } @ inputs: let
-    # Supported systems for your flake packages, shell, etc.
     systems = [
       "aarch64-linux"
       "i686-linux"
@@ -32,50 +31,55 @@
       "aarch64-darwin"
       "x86_64-darwin"
     ];
-    # This is a function that generates an attribute by calling a function you
-    # pass to it, with each system as an argument
     forAllSystems = nixpkgs.lib.genAttrs systems;
   in {
-    # Your custom packages
-    # Accessible through 'nix build', 'nix shell', etc
     packages = forAllSystems (system: import ./pkgs nixpkgs.legacyPackages.${system});
-    # Formatter for your nix files, available through 'nix fmt'
-    # Other options beside 'alejandra' include 'nixpkgs-fmt'
     formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.alejandra);
 
-    # Your custom packages and modifications, exported as overlays
     overlays = import ./overlays {inherit inputs;};
-    # Reusable nixos modules you might want to export
-    # These are usually stuff you would upstream into nixpkgs
     nixosModules = import ./modules/nixos;
-    # Reusable home-manager modules you might want to export
-    # These are usually stuff you would upstream into home-manager
     homeManagerModules = import ./modules/home-manager;
 
-    # NixOS configuration entrypoint
-    # Available through 'nixos-rebuild --flake .#my-laptop'
+    # =====================================================================
+    # NixOS hosts
+    # =====================================================================
     nixosConfigurations = {
-      # FIXME replace with your hostname
+      # --- my-laptop: Kaby Lake i5-7440HQ, HD 630, 8GB ---
       my-laptop = nixpkgs.lib.nixosSystem {
         specialArgs = {inherit inputs;};
         modules = [
-          # > Our main nixos configuration file <
-          ./nixos/configuration.nix
+          ./hosts/my-laptop/configuration.nix
+          ./hosts/my-laptop/hardware-configuration.nix
+        ];
+      };
+
+      # --- my-pc: Ivy Bridge i5-3470, HD 4000, 8GB, USB WiFi+BT ---
+      my-pc = nixpkgs.lib.nixosSystem {
+        specialArgs = {inherit inputs;};
+        modules = [
+          ./hosts/my-pc/configuration.nix
+          ./hosts/my-pc/hardware-configuration.nix
         ];
       };
     };
 
-    # Standalone home-manager configuration entrypoint
-    # Available through 'home-manager --flake .#banumath@my-laptop'
+    # =====================================================================
+    # Home Manager configurations
+    # =====================================================================
     homeConfigurations = {
-      # FIXME replace with your username@hostname
       "banumath@my-laptop" = home-manager.lib.homeManagerConfiguration {
-        # Home-manager requires 'pkgs' instance
-        pkgs = nixpkgs.legacyPackages.x86_64-linux; # FIXME replace x86_64-linux with your architecture
+        pkgs = nixpkgs.legacyPackages.x86_64-linux;
         extraSpecialArgs = {inherit inputs;};
         modules = [
-          # > Our main home-manager configuration file <
-          ./home-manager/home.nix
+          ./hosts/my-laptop/home.nix
+        ];
+      };
+
+      "banumath@my-pc" = home-manager.lib.homeManagerConfiguration {
+        pkgs = nixpkgs.legacyPackages.x86_64-linux;
+        extraSpecialArgs = {inherit inputs;};
+        modules = [
+          ./hosts/my-pc/home.nix
         ];
       };
     };
